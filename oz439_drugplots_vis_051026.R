@@ -4,7 +4,8 @@ library(dplyr)
 library(ggplot2)
 library(gganimate) #info: https://gganimate.com/
 library(colorBlindness)#info: https://cran.r-project.org/web/packages/colorBlindness/vignettes/colorBlindness.html
-
+require(patchwork)
+require(cowplot)
 
 # PK data made available by: Abd-Rahman, A.N., Kaschek, D., Kümmel, A. et al. 
 # Characterizing the pharmacological interaction of the antimalarial combination 
@@ -149,12 +150,37 @@ pk_sum <- pk_sum %>% filter(time != 288)
   scale_y_log10(guide="axis_logticks") + 
   scale_colour_manual(values=c("black",  "grey80","grey50")) +
   scale_shape_manual(values=c(16,15,17)) +
-  labs(x="Time (h)", y="Artefenomel plasma concentation (ng/mL)") + 
-  xlim(0,500) +
+  labs(x="Time (h)", y="Artefenomel plasma concentation\n(ng/mL)") + 
+  scale_x_continuous(limits = c(0, 500), breaks = scales::breaks_width(100)) +
   cowplot::theme_half_open()+
   theme(text=element_text(size=15), 
         legend.title = element_blank(), 
         legend.key.size = unit(2, "lines")))#+ transition_reveal(time)
+
+p <- pub_fig
+
+p | p
+
+p / p
+
+p_combined <- 
+  ((p + xlim(c(0, 200))) | p ) + 
+  patchwork::plot_layout(
+    guides = "collect", widths = c(4, 1))
+
+ggsave(
+  plot = p_combined,
+  device = svglite::svglite,
+  here::here("Part 3 - Inkscape demo/plot_out.svg"),
+  width = 18/1.5, height = 6/1.5)
+
+ggsave(
+  plot = p_combined,
+  here::here("Part 3 - Inkscape demo/plot_out.pdf"),
+  width = 18/1.5, height = 6/1.5)
+#-----------------------------------------------------------
+
+
 
 pk$dose <- factor(pk$DOSELEVEL1, levels=c(100,200,500), 
                   labels=c("100 mg", "200 mg", "500 mg"))
